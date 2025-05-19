@@ -1,17 +1,30 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Coins, Zap, Sparkles } from "lucide-react";
+import { Coins, Zap, Sparkles, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CoinTapperProps {
   onTap: () => void;
   coins: number;
   coinsPerTap: number;
+  isSyncing?: boolean;
 }
 
-const CoinTapper = ({ onTap, coins, coinsPerTap }: CoinTapperProps) => {
+const CoinTapper = ({ onTap, coins, coinsPerTap, isSyncing = false }: CoinTapperProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
+  const [showSyncBadge, setShowSyncBadge] = useState(false);
+  const isMobile = useIsMobile();
+  
+  useEffect(() => {
+    if (isSyncing) {
+      setShowSyncBadge(true);
+      const timeout = setTimeout(() => setShowSyncBadge(false), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isSyncing]);
   
   const handleTap = () => {
     setIsAnimating(true);
@@ -31,9 +44,9 @@ const CoinTapper = ({ onTap, coins, coinsPerTap }: CoinTapperProps) => {
   };
   
   return (
-    <div className="flex flex-col items-center justify-center w-full gap-6 py-8">
+    <div className="flex flex-col items-center justify-center w-full gap-6 py-4 md:py-8">
       <div className="flex flex-col items-center">
-        <div className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent animate-pulse">
+        <div className="text-3xl md:text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent animate-pulse">
           {formatNumber(coins)} <span className="text-base text-yellow-200">PRAY</span>
         </div>
         <div className="text-sm text-indigo-300 mt-1">
@@ -42,16 +55,21 @@ const CoinTapper = ({ onTap, coins, coinsPerTap }: CoinTapperProps) => {
         <div className="mt-2 px-3 py-1 bg-indigo-600/30 rounded-full text-xs text-indigo-400 font-medium border border-indigo-500/30 flex items-center gap-1">
           <Sparkles className="h-3 w-3 text-yellow-400" />
           <span>ERC-20 Token</span>
+          {showSyncBadge && (
+            <Badge variant="outline" className="ml-2 bg-green-600/20 text-green-400 text-xs border-green-500/20 flex items-center gap-1 px-1.5 animate-pulse">
+              <Check className="h-2.5 w-2.5" /> Synced
+            </Badge>
+          )}
         </div>
       </div>
       
       <div className="relative flex justify-center w-full">
         <Button 
-          className={`h-32 w-32 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 shadow-lg shadow-amber-600/30 transition-all ${isAnimating ? 'scale-95' : 'scale-100'}`}
+          className={`h-24 w-24 md:h-32 md:w-32 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 shadow-lg shadow-amber-600/30 transition-all ${isAnimating ? 'scale-95' : 'scale-100'}`}
           size="lg"
           onClick={handleTap}
         >
-          <Coins className="h-16 w-16 text-white drop-shadow-md" />
+          <Coins className={`h-12 w-12 md:h-16 md:w-16 text-white drop-shadow-md`} />
         </Button>
         
         {/* Particle effects */}
@@ -64,7 +82,7 @@ const CoinTapper = ({ onTap, coins, coinsPerTap }: CoinTapperProps) => {
                 style={{
                   top: '50%',
                   left: '50%',
-                  transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateY(-60px)`,
+                  transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateY(${isMobile ? -40 : -60}px)`,
                   animation: `fadeOutUp 1s ease-out ${i * 0.1}s`
                 }}
               />
